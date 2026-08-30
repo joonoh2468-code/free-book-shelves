@@ -1,0 +1,152 @@
+/* ============================================================
+   Free Book Shelf Network — shared styles
+   Built for outdoor phone use at a laundromat or library lobby:
+   big tap targets, high contrast, minimal motion. Palette leans
+   forest green + marigold (growth, warmth) rather than generic
+   blue; the dashed "stamp" badge nods to a library due-date stamp.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --color-bg: #F6F7F4;
+  --color-surface: #EAEFE6;
+  --color-text: #1F2E29;
+  --color-text-muted: #4B5C54;
+  --color-primary: #2F6B4F;
+  --color-primary-dark: #21503A;
+  --color-accent: #E8A33D;
+  --color-danger: #B4432F;
+  --color-danger-bg: #F6E1DC;
+  --color-success-bg: #E1EEE3;
+  --color-border: #D7DED2;
+  --radius: 14px;
+  --radius-sm: 8px;
+  --spacing: 18px;
+  --font-display: 'Fredoka', 'Trebuchet MS', sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: 18px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--color-primary-dark);
+  margin: 0 0 8px;
+}
+h1 { font-size: 30px; }
+h2 { font-size: 22px; margin-top: 28px; }
+p { color: var(--color-text-muted); }
+
+.container { max-width: 640px; margin: 0 auto; padding: var(--spacing); }
+
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px var(--spacing);
+  background: var(--color-primary);
+  color: #fff;
+  border-bottom: 4px solid var(--color-accent);
+}
+.nav strong { font-family: var(--font-display); font-size: 19px; }
+
+label {
+  display: block;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--color-text-muted);
+  margin: 14px 0 6px;
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 14px;
+  font-size: 18px;
+  font-family: var(--font-body);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  color: var(--color-text);
+}
+input:focus, select:focus, textarea:focus {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 1px;
+  border-color: var(--color-primary);
+}
+
+.btn {
+  display: block;
+  width: 100%;
+  padding: 16px;
+  font-size: 19px;
+  font-family: var(--font-body);
+  font-weight: 700;
+  border-radius: var(--radius);
+  border: none;
+  cursor: pointer;
+  text-align: center;
+  min-height: 56px;
+  margin-top: 14px;
+}
+.btn-primary { background: var(--color-primary); color: #fff; }
+.btn-primary:active { background: var(--color-primary-dark); }
+.btn-primary:disabled { background: var(--color-border); color: var(--color-text-muted); cursor: not-allowed; }
+.btn-secondary { background: #fff; color: var(--color-primary-dark); border: 2px solid var(--color-primary); }
+.btn:focus-visible { outline: 3px solid var(--color-accent); outline-offset: 2px; }
+
+.card {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  padding: var(--spacing);
+  margin-bottom: 14px;
+  border: 1px solid var(--color-border);
+}
+.book-title { font-family: var(--font-display); font-size: 20px; font-weight: 600; color: var(--color-text); }
+.book-meta { font-size: 15px; color: var(--color-text-muted); margin-top: 2px; }
+
+/* "Stamp" badge — a nod to a library due-date stamp */
+.stamp {
+  display: inline-block;
+  padding: 3px 12px;
+  border: 2px dashed currentColor;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-top: 8px;
+}
+.stamp-available { color: var(--color-primary); }
+.stamp-taken { color: var(--color-danger); }
+
+.status-msg { padding: 14px; border-radius: var(--radius-sm); margin-bottom: 14px; font-weight: 600; }
+.status-success { background: var(--color-success-bg); color: var(--color-primary-dark); }
+.status-error { background: var(--color-danger-bg); color: var(--color-danger); }
+
+#reader { width: 100%; max-width: 400px; margin: 0 auto; border-radius: var(--radius); overflow: hidden; }
+
+.qr-code {
+  display: block;
+  margin: 14px auto;
+  padding: 10px;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+@media (max-width: 400px) {
+  body { font-size: 17px; }
+  h1 { font-size: 26px; }
+}

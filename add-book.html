@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Add a Book — Free Book Shelves</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="nav">
+  <strong>📚 Add a Book</strong>
+  <button class="btn btn-secondary" style="width:auto;margin-top:0;padding:8px 16px;" onclick="logout()">Log Out</button>
+</div>
+
+<div class="container">
+  <div id="message"></div>
+
+  <div id="scanSection">
+    <button class="btn btn-primary" id="startScanBtn">📷 Scan Barcode</button>
+    <div id="reader" style="display:none;"></div>
+    <button class="btn btn-secondary" id="stopScanBtn" style="display:none;">Stop Scanning</button>
+  </div>
+
+  <p style="text-align:center;margin:16px 0;">— or —</p>
+  <button class="btn btn-secondary" id="manualEntryBtn">✏️ Enter Details Manually</button>
+
+  <form id="bookForm" style="display:none;margin-top:10px;">
+    <label for="title">Title</label>
+    <input type="text" id="title" required />
+
+    <label for="author">Author</label>
+    <input type="text" id="author" />
+
+    <label for="isbn">ISBN (optional)</label>
+    <input type="text" id="isbn" />
+
+    <label for="category">Category</label>
+    <select id="category" required>
+      <option value="">Select category...</option>
+      <option value="Board Book">Board Book</option>
+      <option value="Picture Book">Picture Book</option>
+      <option value="Early Reader">Early Reader</option>
+      <option value="Chapter Book">Chapter Book</option>
+      <option value="Middle Grade">Middle Grade</option>
+    </select>
+
+    <label for="ageRange">Age Range</label>
+    <select id="ageRange" required>
+      <option value="">Select age range...</option>
+      <option value="0-2">0–2 years</option>
+      <option value="3-5">3–5 years</option>
+      <option value="6-8">6–8 years</option>
+      <option value="9-11">9–11 years</option>
+    </select>
+
+    <label for="shelf">Shelf</label>
+    <select id="shelf" required>
+      <option value="">Select shelf...</option>
+    </select>
+
+    <button type="submit" class="btn btn-primary">Add Book to Shelf</button>
+  </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/html5-qrcode"></script>
+<script src="supabaseClient.js"></script>
+<script>
+let html5QrCode;
+const messageEl = document.getElementById('message');
+const bookForm = document.getElementById('bookForm');
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str ?? '';
+  return div.innerHTML;
+}
+
+async function loadShelves() {
+  const { data, error } = await supabase.from('shelves').select('id, name').order('name');
+  const shelfSelect = document.getElementById('shelf');
+  if (!error && data) {
+    data.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.id;
+      opt.textContent = s.name;
+      shelfSelect.appendChild(opt);
+    });
+  }
+  if (!data || !data.length) {
+    messageEl.innerHTML = '<div class="status-msg status-error">No shelves exist yet — add one on the Manage Shelves page first.</div>';
+  }
+}
+
+document.getElementById('startScanBtn').addEventListener('click', startScan);
+document.getElementById('stopScanBtn').addEventListener('click', stopScan);
+document.getElementById('manualEntryBtn').addEventListener('click', () => {
+  bookForm.style.display = 'block';
+});
+
+function startScan() {
+  document.getElementById('reader').style.display = 'block';
+  document.getElementById('stopScanBtn').style.display = 'block';
+  document.getElementById('startScanBtn').style.display = 'none';
+
+  html5QrCode = new Html5Qrcode('reader');
+  html5QrCode.start(
+    { facingMode: 'environment' },
+    { fps: 10, qrbox: { width: 250, height: 150 } },
+    onScanSuccess,
+    () => {} // ignore per-frame "no code found" errors
+  ).catch(err => {
+    messageEl.innerHTML = `<div class="status-msg status-error">Could not access the camera: ${escapeHtml(String(err))}</div>`;
+    stopScan();
+  });
+}
+
+function stopScan() {
+  if (html5QrCode) {
+    html5QrCode.stop().catch(() => {});
+  }
+  document.getElementById('reader').style.display = 'none';
+  document.getElementById('stopScanBtn').style.display = 'none';
+  document.getElementById('startScanBtn').style.display = 'block';
+}
+
+async function onScanSuccess(decodedText) {
+  stopScan();
+  document.getElementById('isbn').value = decodedText;
+  bookForm.style.display = 'block';
+  messageEl.innerHTML = '<div class="status-msg status-success">Barcode scanned — looking up book info...</div>';
+  await lookupBook(decodedText);
+}
+
+async function lookupBook(isbn) {
+  try {
+    const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${encodeURIComponent(isbn)}`);
+    const data = await res.json();
+    if (data.totalItems > 0) {
+      const info = data.items[0].volumeInfo;
+      document.getElementById('title').value = info.title || '';
+      document.getElementById('author').value = (info.authors || []).join(', ');
+      messageEl.innerHTML = `<div class="status-msg status-success">Found "${escapeHtml(info.title)}". Please double-check the category and age range, then save.</div>`;
+    } else {
+      messageEl.innerHTML = '<div class="status-msg status-error">No match found for that barcode. Please fill in title and author manually.</div>';
+    }
+  } catch (e) {
+    messageEl.innerHTML = '<div class="status-msg status-error">Lookup failed — please fill in the details manually.</div>';
+  }
+}
+
+bookForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const submitBtn = bookForm.querySelector('button[type="submit"]');
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Saving...';
+
+  const payload = {
+    title: document.getElementById('title').value.trim(),
+    author: document.getElementById('author').value.trim() || null,
+    isbn: document.getElementById('isbn').value.trim() || null,
+    category: document.getElementById('category').value,
+    age_range: document.getElementById('ageRange').value,
+    shelf_id: document.getElementById('shelf').value,
+    status: 'available'
+  };
+
+  const { error } = await supabase.from('books').insert(payload);
+
+  submitBtn.disabled = false;
+  submitBtn.textContent = 'Add Book to Shelf';
+
+  if (error) {
+    messageEl.innerHTML = `<div class="status-msg status-error">Could not save: ${escapeHtml(error.message)}</div>`;
+    return;
+  }
+
+  messageEl.innerHTML = `<div class="status-msg status-success">✅ "${escapeHtml(payload.title)}" added to the shelf!</div>`;
+  bookForm.reset();
+  bookForm.style.display = 'none';
+});
+
+(async () => {
+  const session = await requireLogin();
+  if (!session) return;
+  await loadShelves();
+})();
+</script>
+</body>
+</html>

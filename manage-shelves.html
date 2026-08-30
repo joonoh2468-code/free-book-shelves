@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Manage Shelves — Free Book Shelves</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="nav">
+  <strong>📚 Manage Shelves</strong>
+  <button class="btn btn-secondary" style="width:auto;margin-top:0;padding:8px 16px;" onclick="logout()">Log Out</button>
+</div>
+
+<div class="container">
+  <div id="message"></div>
+
+  <h1>Add a New Shelf</h1>
+  <form id="shelfForm">
+    <label for="shelfName">Shelf Name / Location</label>
+    <input type="text" id="shelfName" placeholder="e.g. Sunshine Laundromat" required />
+
+    <label for="shelfNotes">Notes (optional)</label>
+    <input type="text" id="shelfNotes" placeholder="e.g. Near the front window" />
+
+    <button type="submit" class="btn btn-primary">Create Shelf &amp; Generate QR</button>
+  </form>
+
+  <h2>Existing Shelves</h2>
+  <div id="shelfList"><p>Loading...</p></div>
+  <p style="font-size:14px;">Print and laminate each QR code once — new books added to a shelf show up automatically, no reprinting needed.</p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabaseClient.js"></script>
+<script>
+// After deploying to Netlify, this automatically points QR codes at
+// your real live site (window.location.origin), so nothing to edit here.
+const CHECKOUT_BASE_URL = window.location.origin + '/checkout.html';
+
+const shelfListEl = document.getElementById('shelfList');
+const messageEl = document.getElementById('message');
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str ?? '';
+  return div.innerHTML;
+}
+
+function qrUrl(shelfId) {
+  const checkoutUrl = `${CHECKOUT_BASE_URL}?shelf=${shelfId}`;
+  return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(checkoutUrl)}`;
+}
+
+async function loadShelves() {
+  const { data, error } = await supabase.from('shelves').select('*').order('created_at', { ascending: false });
+
+  if (error) {
+    shelfListEl.innerHTML = '<div class="status-msg status-error">Could not load shelves.</div>';
+    return;
+  }
+  if (!data.length) {
+    shelfListEl.innerHTML = '<p>No shelves yet — add your first one above.</p>';
+    return;
+  }
+  shelfListEl.innerHTML = data.map(s => `
+    <div class="card">
+      <div class="book-title">${escapeHtml(s.name)}</div>
+      ${s.location_notes ? `<div class="book-meta">${escapeHtml(s.location_notes)}</div>` : ''}
+      <img class="qr-code" src="${qrUrl(s.id)}" alt="QR code for ${escapeHtml(s.name)}" width="180" height="180" />
+      <p style="text-align:center;font-size:13px;margin:0;">Print &amp; laminate this code for the shelf</p>
+    </div>
+  `).join('');
+}
+
+document.getElementById('shelfForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const submitBtn = e.target.querySelector('button');
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Creating...';
+
+  const name = document.getElementById('shelfName').value.trim();
+  const notes = document.getElementById('shelfNotes').value.trim() || null;
+
+  const { error } = await supabase.from('shelves').insert({ name, location_notes: notes });
+
+  submitBtn.disabled = false;
+  submitBtn.textContent = 'Create Shelf & Generate QR';
+
+  if (error) {
+    messageEl.innerHTML = `<div class="status-msg status-error">Could not create shelf: ${escapeHtml(error.message)}</div>`;
+    return;
+  }
+
+  messageEl.innerHTML = `<div class="status-msg status-success">✅ Shelf "${escapeHtml(name)}" created!</div>`;
+  e.target.reset();
+  await loadShelves();
+});
+
+(async () => {
+  const session = await requireLogin();
+  if (!session) return;
+  await loadShelves();
+})();
+</script>
+</body>
+</html>
