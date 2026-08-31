@@ -74,7 +74,7 @@ function renderResults(books) {
   resultsEl.innerHTML = books.map(b => `
     <div class="card">
       <div class="book-title">${escapeHtml(b.title)}</div>
-      <div class="book-meta">${escapeHtml(b.author || 'Unknown author')}${b.category ? ' · ' + escapeHtml(b.category) : ''}${b.age_range ? ' · Ages ' + escapeHtml(b.age_range) : ''}</div>
+      <div class="book-meta">${escapeHtml(b.author || 'Unknown author')}${b.categories && b.categories.length ? ' · ' + b.categories.map(escapeHtml).join(', ') : ''}${b.age_range ? ' · Ages ' + escapeHtml(b.age_range) : ''}${b.grade_range ? ' · Grades ' + escapeHtml(b.grade_range) : ''}</div>
       <div class="book-meta">📍 ${escapeHtml(shelfNames[b.shelf_id] || 'Shelf location unknown')}</div>
       <span class="stamp stamp-available">Available now</span>
     </div>

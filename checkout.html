@@ -78,7 +78,7 @@ function renderBooks(books) {
   booksEl.innerHTML = books.map(b => `
     <div class="card" id="book-${b.id}">
       <div class="book-title">${escapeHtml(b.title)}</div>
-      <div class="book-meta">${escapeHtml(b.author || 'Unknown author')}${b.category ? ' · ' + escapeHtml(b.category) : ''}${b.age_range ? ' · Ages ' + escapeHtml(b.age_range) : ''}</div>
+      <div class="book-meta">${escapeHtml(b.author || 'Unknown author')}${b.categories && b.categories.length ? ' · ' + b.categories.map(escapeHtml).join(', ') : ''}${b.age_range ? ' · Ages ' + escapeHtml(b.age_range) : ''}${b.grade_range ? ' · Grades ' + escapeHtml(b.grade_range) : ''}</div>
       <button class="btn btn-primary" onclick="takeBook('${b.id}')">I'm taking this book</button>
     </div>
   `).join('');

@@ -35,15 +35,17 @@
     <label for="isbn">ISBN (optional)</label>
     <input type="text" id="isbn" />
 
-    <label for="category">Category</label>
-    <select id="category" required>
-      <option value="">Select category...</option>
-      <option value="Board Book">Board Book</option>
-      <option value="Picture Book">Picture Book</option>
-      <option value="Early Reader">Early Reader</option>
-      <option value="Chapter Book">Chapter Book</option>
-      <option value="Middle Grade">Middle Grade</option>
-    </select>
+    <label>Categories (select all that apply)</label>
+    <div class="checkbox-group" id="categoryCheckboxes">
+      <label class="checkbox-item"><input type="checkbox" value="Board Books"> Board Books</label>
+      <label class="checkbox-item"><input type="checkbox" value="Early Readers"> Early Readers</label>
+      <label class="checkbox-item"><input type="checkbox" value="Graphic Novels/Comics"> Graphic Novels/Comics</label>
+      <label class="checkbox-item"><input type="checkbox" value="Classic Favorites"> Classic Favorites</label>
+      <label class="checkbox-item"><input type="checkbox" value="Chapter Book"> Chapter Book</label>
+      <label class="checkbox-item"><input type="checkbox" value="Non-Fiction"> Non-Fiction</label>
+      <label class="checkbox-item"><input type="checkbox" value="Fiction"> Fiction</label>
+      <label class="checkbox-item"><input type="checkbox" value="Challengers"> Challengers</label>
+    </div>
 
     <label for="ageRange">Age Range</label>
     <select id="ageRange" required>
@@ -53,6 +55,16 @@
       <option value="6-8">6–8 years</option>
       <option value="9-11">9–11 years</option>
     </select>
+
+    <div id="gradeRangeField" style="display:none;">
+      <label for="gradeRange">Grade Range (optional)</label>
+      <select id="gradeRange">
+        <option value="">Not specified</option>
+        <option value="K-1">K–1st</option>
+        <option value="2-3">2nd–3rd</option>
+        <option value="4-5">4th–5th</option>
+      </select>
+    </div>
 
     <label for="shelf">Shelf</label>
     <select id="shelf" required>
@@ -99,6 +111,17 @@ document.getElementById('manualEntryBtn').addEventListener('click', () => {
   bookForm.style.display = 'block';
 });
 
+const categoryCheckboxes = document.getElementById('categoryCheckboxes');
+const gradeRangeField = document.getElementById('gradeRangeField');
+const gradeRangeSelect = document.getElementById('gradeRange');
+
+categoryCheckboxes.addEventListener('change', () => {
+  const chapterBookChecked = Array.from(categoryCheckboxes.querySelectorAll('input:checked'))
+    .some(cb => cb.value === 'Chapter Book');
+  gradeRangeField.style.display = chapterBookChecked ? 'block' : 'none';
+  if (!chapterBookChecked) gradeRangeSelect.value = '';
+});
+
 function startScan() {
   document.getElementById('reader').style.display = 'block';
   document.getElementById('stopScanBtn').style.display = 'block';
@@ -107,9 +130,12 @@ function startScan() {
   html5QrCode = new Html5Qrcode('reader');
   html5QrCode.start(
     { facingMode: 'environment' },
-    { 
-      fps:10,
+    {
+      fps: 10,
       qrbox: { width: 250, height: 150 },
+      // Book ISBN barcodes are EAN-13 (sometimes UPC), not QR codes —
+      // without this list, the scanner only looks for QR patterns and
+      // will open the camera but never detect a book's barcode.
       formatsToSupport: [
         Html5QrcodeSupportedFormats.EAN_13,
         Html5QrcodeSupportedFormats.EAN_8,
@@ -162,6 +188,13 @@ async function lookupBook(isbn) {
 
 bookForm.addEventListener('submit', async (e) => {
   e.preventDefault();
+
+  const categories = Array.from(categoryCheckboxes.querySelectorAll('input:checked')).map(cb => cb.value);
+  if (!categories.length) {
+    messageEl.innerHTML = '<div class="status-msg status-error">Please select at least one category.</div>';
+    return;
+  }
+
   const submitBtn = bookForm.querySelector('button[type="submit"]');
   submitBtn.disabled = true;
   submitBtn.textContent = 'Saving...';
@@ -170,8 +203,9 @@ bookForm.addEventListener('submit', async (e) => {
     title: document.getElementById('title').value.trim(),
     author: document.getElementById('author').value.trim() || null,
     isbn: document.getElementById('isbn').value.trim() || null,
-    category: document.getElementById('category').value,
+    categories: categories,
     age_range: document.getElementById('ageRange').value,
+    grade_range: document.getElementById('gradeRange').value || null,
     shelf_id: document.getElementById('shelf').value,
     status: 'available'
   };
@@ -188,6 +222,8 @@ bookForm.addEventListener('submit', async (e) => {
 
   messageEl.innerHTML = `<div class="status-msg status-success">✅ "${escapeHtml(payload.title)}" added to the shelf!</div>`;
   bookForm.reset();
+  categoryCheckboxes.querySelectorAll('input:checked').forEach(cb => cb.checked = false);
+  gradeRangeField.style.display = 'none';
   bookForm.style.display = 'none';
 });
 
