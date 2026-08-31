@@ -3,94 +3,40 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Find a Book — Free Book Shelves</title>
+<title>Next Chapter — Free Book Shelves</title>
 <link rel="stylesheet" href="style.css" />
 </head>
-<body>
+<body class="has-tab-bar">
 
-<div class="nav"><strong>📚 Free Book Shelves</strong></div>
-
-<div class="container">
-  <h1>Find a Book</h1>
-  <p>Search books that are currently sitting on our shelves around town. Everything is free to take — no returns, no late fees.</p>
-
-  <input type="text" id="searchInput" placeholder="Search by title or author..." aria-label="Search by title or author" />
-
-  <div id="results">
-    <p>Loading books...</p>
-  </div>
+<div class="hero">
+  <h1>Next Chapter</h1>
+  <p style="font-style:italic;">On a mission to make every book shelf crowded.</p>
+  <a href="find-books.html" class="btn btn-primary">Find Books</a>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabaseClient.js"></script>
+<nav class="tab-bar">
+  <a href="page-it-forward.html" class="tab-item">
+    <span class="tab-icon">📦</span>
+    <span class="tab-label">Page It Forward</span>
+  </a>
+  <a href="find-books.html" class="tab-item">
+    <span class="tab-icon">🔍</span>
+    <span class="tab-label">Find Books</span>
+  </a>
+  <a href="book-request.html" class="tab-item">
+    <span class="tab-icon">✉️</span>
+    <span class="tab-label">Book Request</span>
+  </a>
+</nav>
+
 <script>
-// Supabase's password-recovery emails always land here (the site's
-// root URL) with a "type=recovery" token in the link. If that's what
-// brought someone here, forward them straight to the real reset page.
+// Supabase's password-recovery emails always land on the site's root
+// URL with a "type=recovery" token in the link. If that's what
+// brought someone here, forward them straight to the real reset page
+// instead of showing the landing page.
 if (window.location.hash.includes('type=recovery')) {
   window.location.replace('reset-password.html' + window.location.hash);
 }
-
-const resultsEl = document.getElementById('results');
-const searchInput = document.getElementById('searchInput');
-let shelfNames = {};
-
-function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str ?? '';
-  return div.innerHTML;
-}
-
-async function loadShelfNames() {
-  const { data, error } = await supabase.from('shelves').select('id, name');
-  if (!error && data) {
-    shelfNames = Object.fromEntries(data.map(s => [s.id, s.name]));
-  }
-}
-
-async function search(query) {
-  resultsEl.innerHTML = '<p>Searching...</p>';
-
-  let q = supabase.from('books').select('*').eq('status', 'available').order('title');
-  if (query.trim()) {
-    const term = query.trim().replace(/[%_]/g, '');
-    q = q.or(`title.ilike.%${term}%,author.ilike.%${term}%`);
-  }
-
-  const { data, error } = await q;
-
-  if (error) {
-    resultsEl.innerHTML = '<div class="status-msg status-error">Something went wrong loading books. Please try again.</div>';
-    return;
-  }
-  renderResults(data);
-}
-
-function renderResults(books) {
-  if (!books.length) {
-    resultsEl.innerHTML = '<p>No matching books are on the shelves right now. Check back soon — new donations get added often!</p>';
-    return;
-  }
-  resultsEl.innerHTML = books.map(b => `
-    <div class="card">
-      <div class="book-title">${escapeHtml(b.title)}</div>
-      <div class="book-meta">${escapeHtml(b.author || 'Unknown author')}${b.categories && b.categories.length ? ' · ' + b.categories.map(escapeHtml).join(', ') : ''}${b.age_range ? ' · Ages ' + escapeHtml(b.age_range) : ''}${b.grade_range ? ' · Grades ' + escapeHtml(b.grade_range) : ''}</div>
-      <div class="book-meta">📍 ${escapeHtml(shelfNames[b.shelf_id] || 'Shelf location unknown')}</div>
-      <span class="stamp stamp-available">Available now</span>
-    </div>
-  `).join('');
-}
-
-let debounceTimer;
-searchInput.addEventListener('input', () => {
-  clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(() => search(searchInput.value), 300);
-});
-
-(async () => {
-  await loadShelfNames();
-  await search('');
-})();
 </script>
 </body>
 </html>

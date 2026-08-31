@@ -177,6 +177,60 @@ input:focus, select:focus, textarea:focus {
   .checkbox-group { grid-template-columns: 1fr; }
 }
 
+/* Top-of-page home link, inside the .nav bar */
+.nav-home {
+  color: #fff;
+  text-decoration: none;
+  font-size: 22px;
+  line-height: 1;
+}
+
+/* Fixed bottom tab bar — Page It Forward / Find Books / Book Request */
+.tab-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  background: #fff;
+  border-top: 2px solid var(--color-border);
+  z-index: 100;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+.tab-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 4px 12px;
+  text-decoration: none;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  gap: 2px;
+}
+.tab-item.active { color: var(--color-primary); }
+.tab-icon { font-size: 22px; }
+body.has-tab-bar { padding-bottom: 82px; }
+
+/* Landing page hero */
+.hero {
+  text-align: center;
+  padding: 48px 24px 32px;
+}
+.hero h1 { font-size: 34px; }
+.hero p { font-size: 17px; max-width: 480px; margin: 12px auto 24px; }
+.hero .btn { max-width: 280px; margin-left: auto; margin-right: auto; border-radius: 999px; }
+
+.drop-off-card {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  padding: var(--spacing);
+  margin-bottom: 12px;
+  border: 1px solid var(--color-border);
+}
+
 @media (max-width: 400px) {
   body { font-size: 17px; }
   h1 { font-size: 26px; }

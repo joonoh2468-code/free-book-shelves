@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Page It Forward — Next Chapter</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body class="has-tab-bar">
+
+<div class="nav">
+  <a href="index.html" class="nav-home" aria-label="Home">🏠</a>
+  <strong>📦 Page It Forward</strong>
+  <span style="width:22px;"></span>
+</div>
+
+<div class="container">
+  <h1>Donate a Book</h1>
+  <p>Have children's books your family has outgrown? Pass them forward — someone else's next chapter is waiting.</p>
+
+  <h2>What we're looking for</h2>
+  <ul style="color:var(--color-text-muted);line-height:1.7;">
+    <li>Board books through 5th grade chapter books</li>
+    <li>Gently used — no missing pages, mold, or strong odors</li>
+    <li>No textbooks, workbooks, or encyclopedias</li>
+    <li>Duplicates are welcome — more copies means more kids can take one</li>
+  </ul>
+
+  <h2>Where to drop off</h2>
+  <p>You can leave donations directly at any of our shelf locations below — no need to ask anyone first, just place them on the shelf.</p>
+  <div id="dropOffList"><p>Loading locations...</p></div>
+</div>
+
+<nav class="tab-bar">
+  <a href="page-it-forward.html" class="tab-item active">
+    <span class="tab-icon">📦</span>
+    <span class="tab-label">Page It Forward</span>
+  </a>
+  <a href="find-books.html" class="tab-item">
+    <span class="tab-icon">🔍</span>
+    <span class="tab-label">Find Books</span>
+  </a>
+  <a href="book-request.html" class="tab-item">
+    <span class="tab-icon">✉️</span>
+    <span class="tab-label">Book Request</span>
+  </a>
+</nav>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabaseClient.js"></script>
+<script>
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str ?? '';
+  return div.innerHTML;
+}
+
+async function loadDropOffPoints() {
+  const listEl = document.getElementById('dropOffList');
+  const { data, error } = await supabase.from('shelves').select('*').order('name');
+
+  if (error) {
+    listEl.innerHTML = '<div class="status-msg status-error">Could not load shelf locations.</div>';
+    return;
+  }
+  if (!data.length) {
+    listEl.innerHTML = '<p>We\'re setting up our first shelves now — check back soon!</p>';
+    return;
+  }
+  listEl.innerHTML = data.map(s => `
+    <div class="drop-off-card">
+      <div class="book-title">${escapeHtml(s.name)}</div>
+      ${s.location_notes ? `<div class="book-meta">${escapeHtml(s.location_notes)}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+loadDropOffPoints();
+</script>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Shelf Checkout — Free Book Shelves</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="nav">
+  <a href="index.html" class="nav-home" aria-label="Home">🏠</a>
+  <strong id="shelfTitle">📚 Loading shelf...</strong>
+  <span style="width:22px;"></span>
+</div>
+
+<div class="container">
+  <p>Tap a book below to take it home. Nothing to sign, nothing to bring back.</p>
+  <div id="message"></div>
+  <div id="books"><p>Loading books...</p></div>
+  <p style="margin-top:24px;"><a href="find-books.html">🔍 Search all shelves instead</a></p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabaseClient.js"></script>
+<script>
+const params = new URLSearchParams(window.location.search);
+const shelfId = params.get('shelf');
+const shelfTitleEl = document.getElementById('shelfTitle');
+const booksEl = document.getElementById('books');
+const messageEl = document.getElementById('message');
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str ?? '';
+  return div.innerHTML;
+}
+
+async function loadShelf() {
+  if (!shelfId) {
+    shelfTitleEl.textContent = '⚠️ No shelf specified';
+    booksEl.innerHTML = '<p>This page is meant to be opened by scanning a shelf\'s QR code.</p>';
+    return;
+  }
+
+  const { data: shelf, error } = await supabase
+    .from('shelves')
+    .select('*')
+    .eq('id', shelfId)
+    .single();
+
+  if (error || !shelf) {
+    shelfTitleEl.textContent = '⚠️ Shelf not found';
+    booksEl.innerHTML = '<p>We couldn\'t find that shelf. Try scanning the code again.</p>';
+    return;
+  }
+
+  shelfTitleEl.textContent = `📚 ${shelf.name}`;
+  loadBooks();
+}
+
+async function loadBooks() {
+  const { data, error } = await supabase
+    .from('books')
+    .select('*')
+    .eq('shelf_id', shelfId)
+    .eq('status', 'available')
+    .order('title');
+
+  if (error) {
+    booksEl.innerHTML = '<div class="status-msg status-error">Could not load books. Please try again.</div>';
+    return;
+  }
+  renderBooks(data);
+}
+
+function renderBooks(books) {
+  if (!books.length) {
+    booksEl.innerHTML = '<p>No books are available on this shelf right now. Check back soon!</p>';
+    return;
+  }
+  booksEl.innerHTML = books.map(b => `
+    <div class="card" id="book-${b.id}">
+      <div class="book-title">${escapeHtml(b.title)}</div>
+      <div class="book-meta">${escapeHtml(b.author || 'Unknown author')}${b.categories && b.categories.length ? ' · ' + b.categories.map(escapeHtml).join(', ') : ''}${b.age_range ? ' · Ages ' + escapeHtml(b.age_range) : ''}${b.grade_range ? ' · Grades ' + escapeHtml(b.grade_range) : ''}</div>
+      <button class="btn btn-primary" onclick="takeBook('${b.id}')">I'm taking this book</button>
+    </div>
+  `).join('');
+}
+
+async function takeBook(bookId) {
+  const card = document.getElementById(`book-${bookId}`);
+  const btn = card.querySelector('button');
+  btn.disabled = true;
+  btn.textContent = 'Confirming...';
+
+  const { data, error } = await supabase.rpc('mark_book_taken', { book_id: bookId });
+
+  if (error || !data || !data.success) {
+    messageEl.innerHTML = `<div class="status-msg status-error">${(data && data.message) || 'Sorry, something went wrong. Please try again.'}</div>`;
+    btn.disabled = false;
+    btn.textContent = "I'm taking this book";
+    return;
+  }
+
+  messageEl.innerHTML = '<div class="status-msg status-success">Enjoy the book! No need to bring it back. 📖</div>';
+  card.remove();
+}
+
+loadShelf();
+</script>
+</body>
+</html>
