@@ -1,33 +1,80 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Next Chapter — Free Book Shelves</title>
-<link rel="stylesheet" href="style.css" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Next Chapter</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
-<body class="has-tab-bar">
+<body>
 
-<div class="hero">
-  <h1>Next Chapter</h1>
-  <p style="font-style:italic;">On a mission to make every book shelf crowded.</p>
-  <a href="find-books.html" class="btn btn-primary">Find Books</a>
-</div>
+<header class="site-header">
+  <a class="wordmark" href="index.html">Next Chapter</a>
+  <nav class="site-nav">
+    <a href="page-it-forward.html">📦 Page It Forward</a>
+    <a href="find-books.html">🔍 Find Books</a>
+    <a href="book-request.html">📝 Book Request</a>
+  </nav>
+  <button class="menu-button" aria-label="Menu"><span></span><span></span></button>
+</header>
+
+<main>
+  <div class="hero">
+    <div class="hero-copy">
+      <span class="eyebrow">Free book shelves</span>
+      <h1 class="display hero-xl">Next <em>Chapter</em></h1>
+      <p class="lede hero-tagline">On a mission to make every book shelf crowded.</p>
+      <a class="btn" href="find-books.html">🔍 Find Books</a>
+    </div>
+
+    <div class="card-stack">
+      <a class="card" href="page-it-forward.html" style="text-decoration:none;">
+        <div class="card-title">📦 Page It Forward</div>
+        <div class="card-meta">Donate the children's books your family has outgrown.</div>
+      </a>
+      <a class="card" href="find-books.html" style="text-decoration:none;">
+        <div class="card-title">🔍 Find Books</div>
+        <div class="card-meta">See what's on the shelves near you.</div>
+      </a>
+      <a class="card" href="book-request.html" style="text-decoration:none;">
+        <div class="card-title">📝 Book Request</div>
+        <div class="card-meta">Looking for something specific? Ask us.</div>
+      </a>
+    </div>
+  </div>
+</main>
+
+<div class="footer-band"></div>
 
 <nav class="tab-bar">
-  <a href="page-it-forward.html" class="tab-item">
-    <span class="tab-icon">📦</span>
-    <span class="tab-label">Page It Forward</span>
-  </a>
-  <a href="find-books.html" class="tab-item">
-    <span class="tab-icon">🔍</span>
-    <span class="tab-label">Find Books</span>
-  </a>
-  <a href="book-request.html" class="tab-item">
-    <span class="tab-icon">✉️</span>
-    <span class="tab-label">Book Request</span>
-  </a>
+  <a href="page-it-forward.html"><span class="icon">📦</span>Page It Forward</a>
+  <a href="find-books.html"><span class="icon">🔍</span>Find Books</a>
+  <a href="book-request.html"><span class="icon">📝</span>Book Request</a>
 </nav>
+
+<style>
+  .hero {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    align-items: center;
+    gap: 56px;
+    padding: 32px 0 24px;
+  }
+  .hero-copy { display: flex; flex-direction: column; align-items: flex-start; }
+  .hero-tagline {
+    font-family: var(--serif);
+    font-size: 26px;
+    line-height: 1.35;
+    max-width: 24ch;
+    margin-bottom: 34px;
+  }
+  .hero .card { padding: 22px 24px; }
+  @media (max-width: 760px) {
+    .hero { grid-template-columns: 1fr; gap: 26px; padding: 6px 0 0; }
+    .hero-tagline { font-size: 21px; margin-bottom: 26px; }
+    .hero .card { padding: 16px 18px; }
+  }
+</style>
 
 <script>
 // Supabase's password-recovery emails always land on the site's root
@@ -38,5 +85,6 @@ if (window.location.hash.includes('type=recovery')) {
   window.location.replace('reset-password.html' + window.location.hash);
 }
 </script>
+
 </body>
 </html>

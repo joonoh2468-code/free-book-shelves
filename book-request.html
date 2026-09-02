@@ -1,59 +1,84 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Request a Book — Next Chapter</title>
-<link rel="stylesheet" href="style.css" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Request a Book — Next Chapter</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
-<body class="has-tab-bar">
+<body>
 
-<div class="nav">
-  <a href="index.html" class="nav-home" aria-label="Home">🏠</a>
-  <strong>✉️ Book Request</strong>
-  <span style="width:22px;"></span>
-</div>
+<header class="site-header">
+  <a class="wordmark" href="index.html">Next Chapter</a>
+  <nav class="site-nav">
+    <a href="page-it-forward.html">📦 Page It Forward</a>
+    <a href="find-books.html">🔍 Find Books</a>
+    <a href="book-request.html" aria-current="page">📝 Book Request</a>
+  </nav>
+  <button class="menu-button" aria-label="Menu"><span></span><span></span></button>
+</header>
 
-<div class="container">
-  <h1>Looking for a Specific Book?</h1>
-  <p>Tell us what you're hoping to find and we'll try to get it onto a shelf. No promises, but we do check these regularly.</p>
+<main>
+  <div class="request-layout">
+    <div>
+      <span class="eyebrow">Requests open</span>
+      <h1 class="display" style="font-size:56px;">Looking for a <em>Specific Book?</em></h1>
+      <p class="lede" style="max-width:34ch;">Tell us what you're hoping to find and we'll try to get it onto a shelf. No promises, but we do check these regularly.</p>
+      <a class="card" href="page-it-forward.html" style="display:block; text-decoration:none; padding:20px 22px;">
+        <div class="card-title">📦 See Page It Forward</div>
+      </a>
+    </div>
 
-  <div id="message"></div>
+    <form class="form" id="requestForm">
+      <div id="message"></div>
+      <div class="field">
+        <label for="title">Book Title</label>
+        <input id="title" required placeholder="e.g. Frog and Toad">
+      </div>
+      <div class="field">
+        <label for="author">Author <span class="optional">(optional)</span></label>
+        <input id="author">
+      </div>
+      <div class="field">
+        <label for="notes">Anything else? <span class="optional">(optional)</span></label>
+        <textarea id="notes"></textarea>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="name">Your Name <span class="optional">(optional)</span></label>
+          <input id="name">
+        </div>
+        <div class="field">
+          <label for="email">Your Email <span class="optional">(optional)</span></label>
+          <input id="email" type="email">
+        </div>
+      </div>
+      <p class="form-note">Email is optional — only if you'd like us to follow up.</p>
+      <button class="btn" type="submit" style="align-self:flex-start;">Submit Request</button>
+    </form>
+  </div>
+</main>
 
-  <form id="requestForm">
-    <label for="bookTitle">Book Title</label>
-    <input type="text" id="bookTitle" required />
-
-    <label for="bookAuthor">Author (optional)</label>
-    <input type="text" id="bookAuthor" />
-
-    <label for="notes">Anything else? (optional)</label>
-    <textarea id="notes" rows="3" placeholder="e.g. for my 6-year-old, loves dinosaurs..."></textarea>
-
-    <label for="requesterName">Your Name (optional)</label>
-    <input type="text" id="requesterName" />
-
-    <label for="requesterEmail">Your Email (optional — only if you'd like us to follow up)</label>
-    <input type="email" id="requesterEmail" />
-
-    <button type="submit" class="btn btn-primary">Submit Request</button>
-  </form>
-</div>
+<div class="footer-band"></div>
 
 <nav class="tab-bar">
-  <a href="page-it-forward.html" class="tab-item">
-    <span class="tab-icon">📦</span>
-    <span class="tab-label">Page It Forward</span>
-  </a>
-  <a href="find-books.html" class="tab-item">
-    <span class="tab-icon">🔍</span>
-    <span class="tab-label">Find Books</span>
-  </a>
-  <a href="book-request.html" class="tab-item active">
-    <span class="tab-icon">✉️</span>
-    <span class="tab-label">Book Request</span>
-  </a>
+  <a href="page-it-forward.html"><span class="icon">📦</span>Page It Forward</a>
+  <a href="find-books.html"><span class="icon">🔍</span>Find Books</a>
+  <a href="book-request.html" aria-current="page"><span class="icon">📝</span>Book Request</a>
 </nav>
+
+<style>
+  .request-layout {
+    display: grid;
+    grid-template-columns: 0.85fr 1.15fr;
+    gap: 56px;
+    align-items: start;
+  }
+  @media (max-width: 760px) {
+    .request-layout { grid-template-columns: 1fr; gap: 28px; }
+    .request-layout h1.display { font-size: 40px !important; }
+  }
+</style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabaseClient.js"></script>
@@ -74,11 +99,11 @@ form.addEventListener('submit', async (e) => {
   submitBtn.textContent = 'Submitting...';
 
   const payload = {
-    book_title: document.getElementById('bookTitle').value.trim(),
-    book_author: document.getElementById('bookAuthor').value.trim() || null,
+    book_title: document.getElementById('title').value.trim(),
+    book_author: document.getElementById('author').value.trim() || null,
     notes: document.getElementById('notes').value.trim() || null,
-    requester_name: document.getElementById('requesterName').value.trim() || null,
-    requester_email: document.getElementById('requesterEmail').value.trim() || null
+    requester_name: document.getElementById('name').value.trim() || null,
+    requester_email: document.getElementById('email').value.trim() || null
   };
 
   const { error } = await supabase.from('book_requests').insert(payload);
@@ -95,5 +120,6 @@ form.addEventListener('submit', async (e) => {
   form.reset();
 });
 </script>
+
 </body>
 </html>

@@ -1,49 +1,67 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Find a Book — Next Chapter</title>
-<link rel="stylesheet" href="style.css" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Find a Book — Next Chapter</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
-<body class="has-tab-bar">
+<body>
 
-<div class="nav">
-  <a href="index.html" class="nav-home" aria-label="Home">🏠</a>
-  <strong>📚 Find a Book</strong>
-  <span style="width:22px;"></span>
-</div>
+<header class="site-header">
+  <a class="wordmark" href="index.html">Next Chapter</a>
+  <nav class="site-nav">
+    <a href="page-it-forward.html">📦 Page It Forward</a>
+    <a href="find-books.html" aria-current="page">🔍 Find Books</a>
+    <a href="book-request.html">📝 Book Request</a>
+  </nav>
+  <button class="menu-button" aria-label="Menu"><span></span><span></span></button>
+</header>
 
-<div class="container">
-  <p>Search books that are currently sitting on our shelves around town. Take a book, keep it forever. No late fees, no returns, ever.</p>
-
-  <input type="text" id="searchInput" placeholder="Search by title or author..." aria-label="Search by title or author" />
-
-  <div id="results">
-    <p>Loading books...</p>
+<main>
+  <div class="find-head">
+    <div>
+      <span class="eyebrow">On the shelves now</span>
+      <h1 class="display">Find a <em>Book</em></h1>
+      <p class="lede" style="margin-bottom:0;">Search books that are currently sitting on our shelves around town. Take a book, keep it forever. No late fees, no returns, ever.</p>
+    </div>
+    <label class="search-field">
+      <span>🔍</span>
+      <input type="search" id="book-search" placeholder="Search by title or author">
+    </label>
   </div>
-</div>
+
+  <div class="card-grid-3" id="book-list">
+    <p class="body">Loading books...</p>
+  </div>
+</main>
+
+<div class="footer-band"></div>
 
 <nav class="tab-bar">
-  <a href="page-it-forward.html" class="tab-item">
-    <span class="tab-icon">📦</span>
-    <span class="tab-label">Page It Forward</span>
-  </a>
-  <a href="find-books.html" class="tab-item active">
-    <span class="tab-icon">🔍</span>
-    <span class="tab-label">Find Books</span>
-  </a>
-  <a href="book-request.html" class="tab-item">
-    <span class="tab-icon">✉️</span>
-    <span class="tab-label">Book Request</span>
-  </a>
+  <a href="page-it-forward.html"><span class="icon">📦</span>Page It Forward</a>
+  <a href="find-books.html" aria-current="page"><span class="icon">🔍</span>Find Books</a>
+  <a href="book-request.html"><span class="icon">📝</span>Book Request</a>
 </nav>
+
+<style>
+  .find-head {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 40px;
+    align-items: end;
+    margin-bottom: 40px;
+  }
+  @media (max-width: 760px) {
+    .find-head { grid-template-columns: 1fr; gap: 18px; align-items: stretch; margin-bottom: 18px; }
+  }
+</style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabaseClient.js"></script>
 <script>
-const resultsEl = document.getElementById('results');
-const searchInput = document.getElementById('searchInput');
+const bookListEl = document.getElementById('book-list');
+const searchInput = document.getElementById('book-search');
 let shelfNames = {};
 
 function escapeHtml(str) {
@@ -60,7 +78,7 @@ async function loadShelfNames() {
 }
 
 async function search(query) {
-  resultsEl.innerHTML = '<p>Searching...</p>';
+  bookListEl.innerHTML = '<p class="body">Searching...</p>';
 
   let q = supabase.from('books').select('*').eq('status', 'available').order('title');
   if (query.trim()) {
@@ -71,7 +89,7 @@ async function search(query) {
   const { data, error } = await q;
 
   if (error) {
-    resultsEl.innerHTML = '<div class="status-msg status-error">Something went wrong loading books. Please try again.</div>';
+    bookListEl.innerHTML = '<div class="status-msg status-error">Something went wrong loading books. Please try again.</div>';
     return;
   }
   renderResults(data);
@@ -79,17 +97,28 @@ async function search(query) {
 
 function renderResults(books) {
   if (!books.length) {
-    resultsEl.innerHTML = '<p>No matching books are on the shelves right now. Check back soon — new donations get added often!</p>';
+    bookListEl.innerHTML = '<p class="body">No matching books are on the shelves right now. Check back soon — new donations get added often!</p>';
     return;
   }
-  resultsEl.innerHTML = books.map(b => `
-    <div class="card">
-      <div class="book-title">${escapeHtml(b.title)}</div>
-      <div class="book-meta">${escapeHtml(b.author || 'Unknown author')}${b.categories && b.categories.length ? ' · ' + b.categories.map(escapeHtml).join(', ') : ''}${b.age_range ? ' · Ages ' + escapeHtml(b.age_range) : ''}${b.grade_range ? ' · Grades ' + escapeHtml(b.grade_range) : ''}</div>
-      <div class="book-meta">📍 ${escapeHtml(shelfNames[b.shelf_id] || 'Shelf location unknown')}</div>
-      <span class="stamp stamp-available">Available now</span>
-    </div>
-  `).join('');
+  bookListEl.innerHTML = books.map(b => {
+    const meta = [
+      b.author || 'Unknown author',
+      b.categories && b.categories.length ? b.categories.map(escapeHtml).join(', ') : null,
+      '📍 ' + (shelfNames[b.shelf_id] || 'Shelf location unknown')
+    ].filter(Boolean).join(' · ');
+    const tag = [
+      b.age_range ? 'Ages ' + b.age_range : null,
+      b.grade_range ? 'Grades ' + b.grade_range : null
+    ].filter(Boolean).join(' · ');
+
+    return `
+      <div class="card">
+        <div class="card-title">${escapeHtml(b.title)}</div>
+        <div class="card-meta">${meta}</div>
+        ${tag ? `<div class="card-tag">${escapeHtml(tag)}</div>` : ''}
+      </div>
+    `;
+  }).join('');
 }
 
 let debounceTimer;
@@ -103,5 +132,6 @@ searchInput.addEventListener('input', () => {
   await search('');
 })();
 </script>
+
 </body>
 </html>

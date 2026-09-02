@@ -1,49 +1,54 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Page It Forward — Next Chapter</title>
-<link rel="stylesheet" href="style.css" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Page It Forward — Next Chapter</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
-<body class="has-tab-bar">
+<body>
 
-<div class="nav">
-  <a href="index.html" class="nav-home" aria-label="Home">🏠</a>
-  <strong>📦 Page It Forward</strong>
-  <span style="width:22px;"></span>
-</div>
+<header class="site-header">
+  <a class="wordmark" href="index.html">Next Chapter</a>
+  <nav class="site-nav">
+    <a href="page-it-forward.html" aria-current="page">📦 Page It Forward</a>
+    <a href="find-books.html">🔍 Find Books</a>
+    <a href="book-request.html">📝 Book Request</a>
+  </nav>
+  <button class="menu-button" aria-label="Menu"><span></span><span></span></button>
+</header>
 
-<div class="container">
-  <h1>Donate a Book</h1>
-  <p>Have children's books your family has outgrown? Pass them forward — someone else's next chapter is waiting.</p>
+<main>
+  <span class="eyebrow">Donations open</span>
+  <h1 class="display">Donate a <em>Book</em></h1>
+  <p class="lede" style="max-width:46ch; margin-bottom:44px;">Have children's books your family has outgrown? We would love your donations! Someone else's next chapter is waiting.</p>
 
-  <h2>What we're looking for</h2>
-  <ul style="color:var(--color-text-muted);line-height:1.7;">
-    <li>Board books through 5th grade chapter books</li>
-    <li>Gently used — no missing pages, mold, or strong odors</li>
-    <li>No textbooks, workbooks, or encyclopedias</li>
-    <li>Duplicates are welcome — more copies means more kids can take one</li>
-  </ul>
+  <div class="two-col">
+    <section>
+      <h2 class="section">What we're looking for</h2>
+      <ul class="checklist">
+        <li>Board books through 5th grade chapter books</li>
+        <li>Gently used, please. Only give what you would take.</li>
+        <li>Duplicates are welcome</li>
+      </ul>
+    </section>
 
-  <h2>Where to drop off</h2>
-  <p>You can leave donations directly at any of our shelf locations below — no need to ask anyone first, just place them on the shelf.</p>
-  <div id="dropOffList"><p>Loading locations...</p></div>
-</div>
+    <section>
+      <h2 class="section">Where to drop off</h2>
+      <p class="body">You can leave donations directly at any of our shelf locations below — no need to ask anyone first, just place them on the shelf.</p>
+      <div class="card-stack" id="locations">
+        <p class="body">Loading locations...</p>
+      </div>
+    </section>
+  </div>
+</main>
+
+<div class="footer-band"></div>
 
 <nav class="tab-bar">
-  <a href="page-it-forward.html" class="tab-item active">
-    <span class="tab-icon">📦</span>
-    <span class="tab-label">Page It Forward</span>
-  </a>
-  <a href="find-books.html" class="tab-item">
-    <span class="tab-icon">🔍</span>
-    <span class="tab-label">Find Books</span>
-  </a>
-  <a href="book-request.html" class="tab-item">
-    <span class="tab-icon">✉️</span>
-    <span class="tab-label">Book Request</span>
-  </a>
+  <a href="page-it-forward.html" aria-current="page"><span class="icon">📦</span>Page It Forward</a>
+  <a href="find-books.html"><span class="icon">🔍</span>Find Books</a>
+  <a href="book-request.html"><span class="icon">📝</span>Book Request</a>
 </nav>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -56,7 +61,7 @@ function escapeHtml(str) {
 }
 
 async function loadDropOffPoints() {
-  const listEl = document.getElementById('dropOffList');
+  const listEl = document.getElementById('locations');
   const { data, error } = await supabase.from('shelves').select('*').order('name');
 
   if (error) {
@@ -64,18 +69,19 @@ async function loadDropOffPoints() {
     return;
   }
   if (!data.length) {
-    listEl.innerHTML = '<p>We\'re setting up our first shelves now — check back soon!</p>';
+    listEl.innerHTML = '<p class="body">We\'re setting up our first shelves now — check back soon!</p>';
     return;
   }
   listEl.innerHTML = data.map(s => `
-    <div class="drop-off-card">
-      <div class="book-title">${escapeHtml(s.name)}</div>
-      ${s.location_notes ? `<div class="book-meta">${escapeHtml(s.location_notes)}</div>` : ''}
+    <div class="card">
+      <div class="card-title">${escapeHtml(s.name)}</div>
+      ${s.location_notes ? `<div class="card-meta">${escapeHtml(s.location_notes)}</div>` : ''}
     </div>
   `).join('');
 }
 
 loadDropOffPoints();
 </script>
+
 </body>
 </html>
