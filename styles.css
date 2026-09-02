@@ -15,13 +15,22 @@
 
 * { box-sizing: border-box; }
 
+html, body {
+  height: 100%;
+}
+
 body {
   margin: 0;
   background: var(--paper);
   color: #23342B;
   font-family: var(--sans);
   -webkit-font-smoothing: antialiased;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
+
+main { flex: 1; }
 
 a { color: inherit; }
 a:hover { color: var(--rose); }
